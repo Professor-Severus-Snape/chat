@@ -1,0 +1,40 @@
+# зависимости:
+node_modules/
+
+# сборка:
+dist/
+
+# env-файлы:
+.env
+.env.*
+
+# логи:
+logs/
+npm-debug.log*
+yarn-debug.log* 
+yarn-error.log*
+pnpm-debug.log*
+
+# docker-логи:
+docker/*.log # в папке docker/
+*.docker.log # в корне проекта
+
+# coverage:
+coverage/
+.nyc_output/
+
+# кэши:
+.eslintcache
+.npm/
+.tmp/
+.cache/
+
+# ide:
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS мусор:
+.DS_Store # Mac OS
+Thumbs.db # Windows
