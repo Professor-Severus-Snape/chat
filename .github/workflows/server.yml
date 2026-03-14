@@ -104,7 +104,7 @@ jobs:
           node server.js &
           SERVER_PID=$!
           sleep 5
-          curl -f http://localhost:7070 || exit 1
+          curl -f http://localhost:7070/ping-server || exit 1
           kill $SERVER_PID
 
       # 5. деплой на Render через Deploy Hook
