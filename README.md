@@ -1,7 +1,5 @@
 # Домашнее задание к занятию "8. EventSource, Websockets" (frontend)
 
-[![Build status](https://ci.appveyor.com/api/projects/status/n8gdi9lwp7rkddb0?svg=true)](https://ci.appveyor.com/project/Professor-Severus-Snape/ahj-websockets-frontend)
-
 Правила сдачи задания:
 
 1. В рамках этого ДЗ можно использовать любой менеджер пакетов.
