@@ -1,0 +1,113 @@
+# название workflow (имя даём сами):
+name: Server CI/CD
+
+# способы запуска workflow:
+on:
+  # 1. при каждом пуше в ветку 'main'
+  push:
+    branches:
+      - main
+    paths:
+      - "server/**" # запуск при внесении изменений в папку 'server/'
+      - ".github/workflows/server.yml" # запуск при внесении изменений в 'server.yml'
+      - "!server/**/*.md" # изменения в ридми не вызовут запуск workflow
+      - "!server/LICENSE" # изменения в лицензии не вызовут запуск workflow
+  # 2. разрешаем также ручной запуск из вкладки Actions на GitHub
+  workflow_dispatch:
+
+# настройка разрешений для токена GITHUB_TOKEN
+permissions:
+  contents: read # разрешить чтение содержимого
+
+# ограничение параллельных запусков workflow
+concurrency:
+  group: "server" # группа workflow для деплоя (имя даём сами)
+  cancel-in-progress: true # отменяем старые, оставляем только последний запуск
+
+# описание работ:
+jobs:
+  # Job-1 - проверка кода линтером:
+  lint:
+    runs-on: ubuntu-latest # работа будет выполнена на последней версии Ubuntu
+
+    timeout-minutes: 10 # если CI зависнет
+
+    defaults:
+      run:
+        working-directory: server # директория запуска работы
+
+    steps: # шаги выполнения работы
+      # 1. клонирование репозитория
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. установка Node.js и кеширование npm
+      - name: Setup Node.js and enable npm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      # 3. установка зависимостей
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. запуск линтера
+      - name: Run ESLint
+        run: npm run lint
+
+  # Job-2 - проверка сборки и деплой серверной части:
+  build:
+    # выполняется только после успешной работы 'lint'
+    needs:
+      - lint
+
+    runs-on: ubuntu-latest # работа будет выполнена на последней версии Ubuntu
+
+    timeout-minutes: 10 # если CI зависнет
+
+    # GitHub метаданные
+    environment:
+      name: production
+      url: https://chat-7uau.onrender.com
+
+    # переменные окружения для Node.js
+    env:
+      NODE_ENV: production
+
+    defaults:
+      run:
+        working-directory: server # директория запуска работы
+
+    steps: # шаги выполнения работы
+      # 1. клонирование репозитория
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. установка Node.js и кеширование npm
+      - name: Setup Node.js and enable npm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      # 3. установка зависимостей
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. проверка запуска сервера (build step)
+      # сервер запускается на несколько секунд, чтобы убедиться, что нет ошибок
+      - name: Test server start
+        run: |
+          node server.js &
+          SERVER_PID=$!
+          sleep 5
+          curl -f http://localhost:7070 || exit 1
+          kill $SERVER_PID
+
+      # 5. деплой на Render через Deploy Hook
+      # URL Deploy Hook хранится в GitHub Secrets
+      - name: Deploy to Render
+        run: curl -f -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}

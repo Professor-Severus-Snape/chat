@@ -1,0 +1,116 @@
+# название workflow (имя даём сами):
+name: Client CI/CD
+
+# способы запуска workflow:
+on:
+  # 1. при каждом пуше в ветку 'main'
+  push:
+    branches:
+      - main
+    paths:
+      - "client/**" # запуск только при внесении изменений в папку 'client/'
+      - ".github/workflows/client.yml" # запуск при внесении изменений в 'client.yml'
+      - "!client/**/*.md" # изменения в ридми не вызовут запуск workflow
+      - "!client/LICENSE" # изменения в лицензии не вызовут запуск workflow
+  # 2. разрешаем также ручной запуск из вкладки Actions на GitHub
+  workflow_dispatch:
+
+# настройка разрешений для токена GITHUB_TOKEN для деплоя на GitHub Pages:
+permissions:
+  contents: read # разрешить чтение содержимого
+  pages: write # разрешить запись на GitHub Pages
+  id-token: write # разрешить использование токена идентификации (для Pages)
+
+# ограничение параллельных запусков workflow
+concurrency:
+  group: "client" # группа workflow для деплоя (имя даём сами)
+  cancel-in-progress: true # отменяем старые, оставляем только последний запуск (актуальный деплой)
+
+# описание работ:
+jobs:
+  # Job-1 - проверка кода линтером:
+  lint:
+    runs-on: ubuntu-latest # работа будет выполнена на последней версии Ubuntu
+
+    defaults:
+      run:
+        working-directory: client # директория запуска работы
+
+    steps: # шаги выполнения работы
+
+      # 1. клонирование репозитория
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. установка Node.js и кеширование npm
+      - name: Setup Node.js and enable npm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      # 3. установка зависимостей
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. запуск линтера
+      - name: Run ESLint
+        run: npm run lint
+
+  # Job-2 - сборка и деплой на GitHub Pages:
+  build:
+    # выполняется только после успешной работы 'lint'
+    needs:
+      - lint
+
+    runs-on: ubuntu-latest # работа будет выполнена на последней версии Ubuntu
+
+    environment: # настройки окружения для развёртывания на GitHub Pages
+      name: github-pages # имя окружения
+      url: ${{ steps.deployment.outputs.page_url }} # URL для деплоя (вывод из шага deployment)
+
+    defaults:
+      run:
+        working-directory: client # директория запуска работы
+
+    steps: # шаги выполнения работы
+
+      # 1. клонирование репозитория
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. установка Node.js и кеширование npm
+      - name: Setup Node.js and enable npm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      # 3. установка зависимостей
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. очистка старых артефактов Pages (по необходимости)
+      - name: Clean old build artifacts
+        run: rm -rf ./dist || true
+
+      # 5. сборка проекта
+      - name: Build project
+        run: npm run build
+
+      # 6. настройка Pages и environment:
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v4
+
+      # 7. загрузка новых артефактов (dist) для деплоя:
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: client/dist # указываем директорию с готовой сборкой
+
+      # 8. деплой на GitHub Pages:
+      - name: Deploy to GitHub Pages
+        id: deployment # deployment позволяет получить URL страницы через outputs
+        uses: actions/deploy-pages@v4

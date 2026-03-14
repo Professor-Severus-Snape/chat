@@ -1,3 +1,6 @@
+[![Client CI/CD](https://github.com/professor-severus-snape/chat/actions/workflows/client.yml/badge.svg)](https://github.com/professor-severus-snape/chat/actions/workflows/client.yml)
+[![Server CI/CD](https://github.com/professor-severus-snape/chat/actions/workflows/server.yml/badge.svg)](https://github.com/professor-severus-snape/chat/actions/workflows/server.yml)
+
 # Чат
 
 Простое браузерное приложение для обмена сообщениями в реальном времени.  

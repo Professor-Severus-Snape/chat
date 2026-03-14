@@ -100,7 +100,7 @@ export default class Controller {
 
     this.ws = isDev
       ? new WebSocket('ws://localhost:7070/ws') // локальный сервер
-      : new WebSocket('wss://ahj-websockets-backend.onrender.com/ws'); // сервер на render.com
+      : new WebSocket('wss://chat-7uau.onrender.com/ws'); // сервер на render.com
 
     // событие 'open' - возникает только 1 раз на каждой странице
     // this.ws.addEventListener('open', (event) => {

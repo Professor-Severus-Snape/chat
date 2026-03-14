@@ -3,7 +3,7 @@ export default async function createRequest(options) {
 
   const baseUrl = isDev
     ? 'http://localhost:7070' // локальный сервер
-    : 'https://ahj-websockets-backend.onrender.com'; // сервер на render.com
+    : 'https://chat-7uau.onrender.com'; // сервер на render.com
 
   const { method, url, body } = options;
 
