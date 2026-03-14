@@ -12,10 +12,11 @@ export default class Controller {
     }
 
     this.container = container;
+    this.spinner = new Spinner();
   }
 
   async init() {
-    this.spinner = new Spinner(); // запускаем спиннер ожидания
+    this.spinner.render(); // ожидание первого ответа от сервера...
     const server = await Service.pingServer(); // ждём ответа от сервера
     this.spinner.removeSpinner(); // убираем спиннер после получения ответа от сервера
 
@@ -95,8 +96,11 @@ export default class Controller {
   }
 
   connectToWebSocket() {
-    // this.ws = new WebSocket('ws://localhost:7070/ws'); // локальный сервер
-    this.ws = new WebSocket('wss://ahj-websockets-backend.onrender.com/ws'); // сервер на Render
+    const isDev = window.location.hostname === 'localhost';
+
+    this.ws = isDev
+      ? new WebSocket('ws://localhost:7070/ws') // локальный сервер
+      : new WebSocket('wss://ahj-websockets-backend.onrender.com/ws'); // сервер на render.com
 
     // событие 'open' - возникает только 1 раз на каждой странице
     // this.ws.addEventListener('open', (event) => {

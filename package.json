@@ -1,7 +1,6 @@
 {
   "name": "chat-frontend",
-  "version": "1.0.1",
-  "description": "",
+  "version": "1.0.0",
   "main": "index.js",
   "scripts": {
     "start": "webpack serve --env development",
