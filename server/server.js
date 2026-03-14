@@ -26,6 +26,21 @@ const updateUsersCache = () => {
   cachedUsersJSON = JSON.stringify([...onlineUsers.values()]); // [{ 'id': '', 'name': '' }, ... ]
 };
 
+// --------------------
+// Настройка WebSocket:
+// --------------------
+const server = http.createServer(app); // текущий настроенный http-сервер
+const wsServer = new WebSocketServer({ server });
+
+// функция рассылки сообщений всем клиентам:
+const broadcast = (...args) => {
+  wsServer.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(...args);
+    }
+  });
+};
+
 // -------------------------
 // Регистрация пользователя:
 // -------------------------
@@ -63,21 +78,6 @@ app.post('/new-user', (request, response) => {
     user: newUser,
   });
 });
-
-// --------------------
-// Настройка WebSocket:
-// --------------------
-const server = http.createServer(app); // текущий настроенный http-сервер
-const wsServer = new WebSocketServer({ server });
-
-// функция рассылки сообщений всем клиентам:
-const broadcast = (...args) => {
-  wsServer.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(...args);
-    }
-  });
-};
 
 // подключение нового юзера (событие 'connection'):
 wsServer.on('connection', (ws) => {
